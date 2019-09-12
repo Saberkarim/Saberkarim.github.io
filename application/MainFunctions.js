@@ -15,7 +15,7 @@ function preload() {
 
 function setupCanvas() {
     const canvas = createCanvas(windowWidth, windowHeight);
-
+    canvas.parent('main-canvas')
     canvas.size(getCanvasResW(), getCanvasResH())
 
 
@@ -23,7 +23,6 @@ function setupCanvas() {
         width: 640,
         height: 480
     };
-
 
 
     setSmoothedCanvas(canvas.canvas, true)
@@ -46,15 +45,17 @@ function otherSetups(canvas, medias) {
     }) // function to initiate webcams (callback parameter called when done)
 
     // bgImg = loadMedia('beach.jpg')
-    button = createButton('startRecording');
+    // button = createButton('startRecording');
+    button = select('#button-record');
 
+    // STYLING
     button.mousePressed(v => {
         recorder.toggleRecording();
         button.html(recorder.isRecording ? 'stop recording' : 'start recording')
 
     });
-    showUI = createButton('hide')
-    showUI.position(0, 0)
+    // showUI = createButton('hide')
+    showUI = select("#button-showhide");
     showUI.mousePressed(() => {
         const wasVisible = allUIs[0].elt.style.display !== 'none';
         if (wasVisible) {
@@ -65,45 +66,49 @@ function otherSetups(canvas, medias) {
             allUIs.map(e => e.show());
         }
     })
-    sliderThresh = createSlider(0, 200, 100);
-    sliderTol = createSlider(0, 100, 0);
-    selBackground = createSelect()
-    selForeground = createSelect()
-
+    sliderThresh = select('#range-spectre');
+    sliderTol = select('#range-density');
+    selBackground = select('#select-image-back');
+    selForeground = select('#select-image-front');
+    selOption = select('#select-option');
 
 
     for (const m of medias) {
         selBackground.option(m)
         selForeground.option(m)
     }
+
+    selOption.option("Image originale");
+    selOption.option("Inverser image");
+    selOption.option("Threshold");
+    // selOption.option("Grey")
+    // selOption.option("Erode")
+    // selOption.option("Posterize")
+    // selOption.option("blur")
+
+    selOption.changed((m) => {
+        name_effet = selOption.value();
+    })
+
     selBackground.changed((m) => {
         bgImg = loadMedia(selBackground.value())
     })
 
     selForeground.changed((m) => {
         transparentImg = loadMedia(selForeground.value(), webcamLoaded)
-
     })
 
-//    selRes = createSlider(0.1, 1, 1, 0.1)
-//    selRes.changed(() => {
-//        setDownscaling(selRes.value()) // can downscale resolution if needed
-//        if (transparentImg) {
-//            transparentImg = loadMedia(selForeground.value(), undefined, {
-//                width: {
-//                    max: getCanvasResW()
-//                },
-//                height: {
-//                    max: getCanvasResW()
-//                }
-//            })
-//        }
-//    }) 
-    
-    
-//        flashyColorChk = createCheckbox('flashy');
-//    allUIs = [button,sliderThresh,sliderTol,selBackground,selForeground,selRes,flashyColorChk]
-    allUIs = [button, sliderThresh, sliderTol, selBackground, selForeground]
+
+    // selRes = createSlider(0.1,1,1,0.1)
+    // selRes.changed(()=>{
+    //   setDownscaling(selRes.value()) // can downscale resolution if needed
+    //   if(transparentImg ){
+    //     transparentImg = loadMedia(selForeground.value(),undefined,{width:{max:getCanvasResW()},height:{max:getCanvasResW()}})
+    //   }
+    // })
+
+    // flashyColorChk = createCheckbox('flashy');
+    allUIs = [button, sliderThresh, sliderTol, selBackground, selForeground, selOption]
     layoutUI()
 
     return recorder, transparentImg;
@@ -115,7 +120,6 @@ function webcamLoaded() {
     setTargetRes(w, h) // sets canvas resolution to webcam one (allow for bigger resolution than displayed -> better video recordings)
     resizeCanvasToWindow()
 }
-
 
 
 function setupWebcams(cb) {
@@ -244,10 +248,10 @@ function colorZToAlpha(img, color, color2, threshold) {
 
     for (let i = wh - 4; i > 0; i -= 4) {
         const distL = [
-    calculateDistance(pixT[i], cmin[0], cmax[0]),
-    calculateDistance(pixT[i + 1], cmin[1], cmax[1]),
-    calculateDistance(pixT[i + 2], cmin[2], cmax[2])
-    ];
+            calculateDistance(pixT[i], cmin[0], cmax[0]),
+            calculateDistance(pixT[i + 1], cmin[1], cmax[1]),
+            calculateDistance(pixT[i + 2], cmin[2], cmax[2])
+        ];
         const dist = (distL[0] * distL[0] + distL[1] * distL[1] + distL[2] * distL[2]) / 3
         pixT[i + 3] = dist > thresholdSq ? 255 : 0;
     }
@@ -327,7 +331,6 @@ function colorToAlpha(img, color, threshold, tolerance, stride) {
             }
 
         }
-
 
 
     } else {
@@ -414,10 +417,10 @@ function getColorUnderMouseClick(e, greenScreenMedia, toUnNatural) {
     // greenScreenMedia.loadPixels();
     if (loc + 2 < greenScreenMedia.pixels.length) {
         let c = [
-    greenScreenMedia.pixels[loc + 0],
-    greenScreenMedia.pixels[loc + 1],
-    greenScreenMedia.pixels[loc + 2],
-    ]
+            greenScreenMedia.pixels[loc + 0],
+            greenScreenMedia.pixels[loc + 1],
+            greenScreenMedia.pixels[loc + 2],
+        ]
         if (toUnNatural) { // get flashy value related to color, helps if we want to remove a primary color like green
             let hsv = toHSV(c, 0)
             hsv[1] = Math.max(200, hsv[1])
@@ -459,7 +462,7 @@ function loadMedia(path, cb, caps) {
                     if (cb) {
                         cb()
                     }
-                })
+                });
             med.hide()
 
         } else if ([".jpg", ".png", ".bmp"].some(ext => path.endsWith(ext))) {
@@ -499,7 +502,6 @@ function setDownscaling(q) {
 }
 
 
-
 function layoutUI() {
     // auto layout ui in column
     const wSize = getWindowWidth() / 3
@@ -508,9 +510,9 @@ function layoutUI() {
     let x = 0
 
     const hSize = getWindowHeight() / allUIs.length
-    for (const element of allUIs) {
-        element.position(x, y);
-        element.size(wSize, hSize - gap)
-        y += hSize
-    }
+    // for (const element of allUIs) {
+    //     element.position(x, y);
+    //     element.size(wSize, hSize - gap)
+    //     y += hSize
+    // }
 }

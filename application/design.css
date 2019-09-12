@@ -1,0 +1,44 @@
+#button-record {
+    position: fixed;
+    bottom:100px;
+    left:96%;
+    
+}
+
+.custom-select{
+    width:30%;
+
+}
+
+#range-spectre{
+    width:50%;
+
+}
+#range-density{
+width:50%;
+    
+}
+#button-showhide{
+position: fixed;
+top:815px;
+width:10%;
+
+}
+#custom-select{
+position: fixed;
+bottom: 10px;
+}
+
+/*
+ *  Mobile
+ */
+@media screen and (max-width: 780px) {
+    
+  #button-record {
+  left:80%;
+    
+  }
+
+   
+    
+}
